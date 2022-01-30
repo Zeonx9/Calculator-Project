@@ -11,13 +11,13 @@ const char RESERVED[NUM_OF_RESERVED][6];
 
 // constants to distinct different types of possible elements of expression
 typedef enum { identifier, operation, constant } TokenType;
+
 // constants for every reserved function identifier and operators
 // actually reserved words are in .c file in the same order as here
 typedef enum {
     add, sub, mul, dev, car, eqv, bro, brc, cma,
     sin, cos, tg, log, ln, srt, pov, abc, exp, real, img, mag, phs,
     E, PI, none } Function;
-
 
 // core struct which represent single element in expression string
 // it can be either number(constant), operation(action) or identifier(function/variable)
