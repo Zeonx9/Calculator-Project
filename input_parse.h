@@ -7,7 +7,7 @@
 #define NUM_OF_OPERATIONS 9 // number of operations + brackets
 #define LEN_OF_IDENTIFIER 32 // maximal len of identifier
 
-const char RESERVED[NUM_OF_RESERVED][6];
+extern const char RESERVED[NUM_OF_RESERVED][6];
 
 // constants to distinct different types of possible elements of expression
 typedef enum { identifier, operation, constant } TokenType;
