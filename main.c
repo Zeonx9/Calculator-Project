@@ -1,3 +1,6 @@
+#define ACTIVE_
+
+#ifdef ACTIVE
 #include <stdio.h>
 #include "input_parse.h"
 
@@ -12,4 +15,4 @@ int main() {
     }
     printf("variables: %d, lines: %d", pe.varCount, pe.lineCount);
 }
-
+#endif

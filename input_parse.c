@@ -74,7 +74,7 @@ TokenArray tokenize (char *expr, char ** variablesPool, int *varCount) {
                 buf[bufCount++] = *pos++;
             buf[bufCount] = 0;
 
-            value = bufCount > 1 ? atof(buf) : 1; // get the value NOLINT(cert-err34-c)
+            value = bufCount == 1 && *buf == 'j' ? 1 : atof(buf); // get the value NOLINT(cert-err34-c)
             isImaginary = buf[bufCount - 1] == 'j'; // check if imaginary
         } else if ((tmp = getOpCode(*pos)) != none) {
             // if current token is operator
