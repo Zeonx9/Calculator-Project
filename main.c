@@ -1,4 +1,4 @@
-#define ACTIVE
+#define ACTIVE_
 
 #ifdef ACTIVE
 #include <stdio.h>

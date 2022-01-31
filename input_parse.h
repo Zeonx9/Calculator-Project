@@ -7,6 +7,9 @@
 #define NUM_OF_OPERATIONS 9 // number of operations + brackets
 #define LEN_OF_IDENTIFIER 32 // maximal len of identifier
 
+#define INCORRECT_BRACKETS 101
+#define ILLEGAL_CHAR 102
+
 extern const char RESERVED[NUM_OF_RESERVED][6];
 
 // constants to distinct different types of possible elements of expression

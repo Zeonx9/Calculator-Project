@@ -66,6 +66,11 @@ TokenArray tokenize (char *expr, char ** variablesPool, int *varCount) {
         Token *t = tokens + size++;
         TokenType type; double value; Function actCode; int isImaginary, varId;
 
+        if (!isDigitOrJ(*pos) && !isAllowedInId(*pos) && *pos != ' ' && *pos != ',' && *pos == '\n') {
+            printf("Error: %c character is not allowed\n", *pos);
+            exit(ILLEGAL_CHAR);
+        }
+
         if (isDigitOrJ(*pos)) {
             // if current token is a constant literal
             type = constant;
@@ -126,6 +131,17 @@ InputExpression getInput() {
     fseek(ie.savedFile, 0, SEEK_SET);
     return ie;
 }
+// check if entered expression present a correct bracket sequence
+int checkBracketSequence(TokenArray expr) {
+    int depth = 0;
+    for (int i = 0; i < expr.size; ++i)
+        if (expr.array[i].type == operation) {
+            if (expr.array[i].act == bro) ++depth;
+            if (expr.array[i].act == brc) --depth;
+            if (depth < 0) return 0;
+        }
+    return depth == 0;
+}
 
 // parse all given lines using tokenize method; return array of every tokenized line
 ParsedExpression parseExpression(InputExpression ie) {
@@ -142,6 +158,10 @@ ParsedExpression parseExpression(InputExpression ie) {
         // tokenize every line given and store into resulting array
         fgets(curExpr, MAX_EXPR_LEN, ie.savedFile);
         output[i] = tokenize(curExpr, variablesPool, &varCount);
+        if (!checkBracketSequence(output[i])) {
+            printf("Error: Entered expression has incorrect bracket sequence! line: %d\n", i + 1);
+            exit(INCORRECT_BRACKETS);
+        }
     }
 
     //free all used resources
