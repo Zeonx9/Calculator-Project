@@ -64,7 +64,7 @@ TokenArray tokenize (char *expr, char ** variablesPool, int *varCount) {
     while (*pos) {
         // pointer to current token and vars for values of its fields
         Token *t = tokens + size++;
-        TokenType type; double val; Function f; int imag, var;
+        TokenType type; double value; Function actCode; int isImaginary, varId;
 
         if (isDigitOrJ(*pos)) {
             // if current token is a constant literal
@@ -74,12 +74,12 @@ TokenArray tokenize (char *expr, char ** variablesPool, int *varCount) {
                 buf[bufCount++] = *pos++;
             buf[bufCount] = 0;
 
-            val = bufCount > 1 ? atof(buf) : 1; // get the value
-            imag = buf[bufCount - 1] == 'j'; // check if imaginary
+            value = bufCount == 1 && *buf == 'j' ? 1 : atof(buf); // get the value NOLINT(cert-err34-c)
+            isImaginary = buf[bufCount - 1] == 'j'; // check if imaginary
         } else if ((tmp = getOpCode(*pos)) != none) {
             // if current token is operator
             type = operation;
-            f = tmp; ++pos;
+            actCode = tmp; ++pos;
         } else {
             // else it is identifier of function or variable
             type = identifier;
@@ -90,20 +90,20 @@ TokenArray tokenize (char *expr, char ** variablesPool, int *varCount) {
 
             // if identifier is in reversed group it is function
             if ((tmp = getFuncCode(buf)) != none)
-                var = -1;
+                varId = -1;
             else // else it is a variable
-                var = getVariableID(buf, variablesPool, varCount);
-            f = tmp;
+                varId = getVariableID(buf, variablesPool, varCount);
+            actCode = tmp;
         }
 
         // assign current token its fields values
         t->type = type;
         if (type == constant)
             // fields for constants
-            t->value = val, t->imag = imag;
+            t->value = value, t->imag = isImaginary;
         else
             // fields for non-constants
-            t->act = f,  t->varID = var;
+            t->act = actCode, t->varID = varId;
         bufCount = 0;
         skip(&pos);
     }
