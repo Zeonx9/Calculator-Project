@@ -10,6 +10,7 @@ void printToken(Token * t) {
     else printf("var(id:%d)", t->varID);
 }
 //хуета
+//fuck egor! russian is not allowed
 int main() {
     InputExpression ie = getInput();
     ParsedExpression pe = parseExpression(ie);
