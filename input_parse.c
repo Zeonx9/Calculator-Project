@@ -143,6 +143,19 @@ int checkBracketSequence(TokenArray expr) {
     return depth == 0;
 }
 
+// check if given token is constant or variable
+int isFinal(Token *t){
+    return t->type == constant || t->type == identifier && t->act == none;
+}
+// check if between every constant or variable in expression is operation
+int checkNoFollowingConstants(TokenArray expr) {
+    for (int i = 0; i < expr.size - 1; ++i) {
+        if (isFinal(expr.array + i) && isFinal(expr.array + i + 1))
+            return 0;
+    }
+    return 1;
+}
+
 // parse all given lines using tokenize method; return array of every tokenized line
 ParsedExpression parseExpression(InputExpression ie) {
     // resulting array
@@ -161,6 +174,10 @@ ParsedExpression parseExpression(InputExpression ie) {
         if (!checkBracketSequence(output[i])) {
             printf("Error: Entered expression has incorrect bracket sequence! line: %d\n", i + 1);
             exit(INCORRECT_BRACKETS);
+        }
+        if (!checkNoFollowingConstants(output[i])) {
+            printf("Error: is not a single expression, two numbers or variables without operator!\n");
+            exit(FOLLOWING_CONSTANTS);
         }
     }
 

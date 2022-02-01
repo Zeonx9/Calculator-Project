@@ -1,14 +1,16 @@
-#ifndef INC_22_02_15_CALCULATOR_INPUT_PARSE_H
-#define INC_22_02_15_CALCULATOR_INPUT_PARSE_H
+#ifndef CPROJECTSCALCULATOR_INPUT_PARSE_H
+#define CPROJECTSCALCULATOR_INPUT_PARSE_H
 
 #include <stdio.h>
 
 #define NUM_OF_RESERVED 24 // number of reserved identifiers
-#define NUM_OF_OPERATIONS 9 // number of operations + brackets
+#define NUM_OF_OPERATIONS 9 // number of operations + brackets + '=' + ','
 #define LEN_OF_IDENTIFIER 32 // maximal len of identifier
 
 #define INCORRECT_BRACKETS 101
 #define ILLEGAL_CHAR 102
+#define EMPTY_BRACKETS 103
+#define FOLLOWING_CONSTANTS 104
 
 extern const char RESERVED[NUM_OF_RESERVED][6];
 
@@ -59,5 +61,7 @@ typedef struct {
 InputExpression getInput();
 // parse whole given expressions
 ParsedExpression parseExpression(InputExpression ie);
+// check if given token is constant or variable
+int isFinal(Token *t);
 
-#endif //INC_22_02_15_CALCULATOR_INPUT_PARSE_H
+#endif //CPROJECTSCALCULATOR_INPUT_PARSE_H
