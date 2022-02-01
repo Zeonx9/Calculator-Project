@@ -63,5 +63,9 @@ InputExpression getInput();
 ParsedExpression parseExpression(InputExpression ie);
 // check if given token is constant or variable
 int isFinal(Token *t);
+// check if given operation is a defined function
+int isFunc(Token *t);
+// check if given operation is a defined constant: 'PI' or 'e'
+int isDefinedConst(Token *t);
 
 #endif //CPROJECTSCALCULATOR_INPUT_PARSE_H
