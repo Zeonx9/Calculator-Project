@@ -50,18 +50,6 @@ int isDigitOrJ(char c) {
 int isAllowedInId(char c) {
     return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || '0' <= c && c <= '9';
 }
-// check if given token is constant or variable
-int isFinal(Token *t){
-    return t->type == constant || t->type == identifier && t->act == none;
-}
-// check if given operation is a defined function
-int isFunc(Token *t) {
-    return t->type == identifier && t->act != none;
-}
-// check if given operation is a defined constant 'PI' or 'e'
-int isDefinedConst(Token *t) {
-    return t->type == identifier && t->act == PI || t->act == E;
-}
 
 // check if entered expression present a correct bracket sequence
 int checkBracketSequence(TokenArray expr) {
@@ -96,27 +84,6 @@ int isVariable(Token *t) { return t->type == identifier && t->act == none; }
 int isFinal(Token *t) { return isConstant(t) || isVariable(t); }
 // check if given operation is a defined constant 'PI' or 'e'
 int isDefinedConst(Token *t) { return t->type == identifier && t->act == PI || t->act == E; }
-
-// check if entered expression present a correct bracket sequence
-int checkBracketSequence(TokenArray expr) {
-    int depth = 0;
-    for (int i = 0; i < expr.size; ++i)
-        if (expr.array[i].type == operation) {
-            if (expr.array[i].act == bro) ++depth;
-            if (expr.array[i].act == brc) --depth;
-            if (depth < 0) return 0;
-        }
-    return depth == 0;
-}
-
-// check if between every constant or variable in expression is operation
-int checkNoFollowingConstants(TokenArray expr) {
-    for (int i = 0; i < expr.size - 1; ++i) {
-        if (isFinal(expr.array + i) && isFinal(expr.array + i + 1))
-            return 0;
-    }
-    return 1;
-}
 
 // split given string (single line) into array of tokens
 TokenArray tokenize (char *expr, char ** variablesPool, int *varCount) {
