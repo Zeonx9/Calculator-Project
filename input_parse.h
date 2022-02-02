@@ -11,8 +11,11 @@
 #define ILLEGAL_CHAR 102
 #define EMPTY_BRACKETS 103
 #define FOLLOWING_CONSTANTS 104
+#define WRONG_LOG 105
+#define CANNOT_ASSIGN 106
+#define NOT_ASSIGNED 107
 
-extern const char RESERVED[NUM_OF_RESERVED][6];
+extern const char * RESERVED[NUM_OF_RESERVED];
 
 // constants to distinct different types of possible elements of expression
 typedef enum { identifier, operation, constant } TokenType;
@@ -61,11 +64,19 @@ typedef struct {
 InputExpression getInput();
 // parse whole given expressions
 ParsedExpression parseExpression(InputExpression ie);
-// check if given token is constant or variable
-int isFinal(Token *t);
+
+// check if token is a constant
+int isConstant(Token *t);
+// check if token is a variable
+int isVariable(Token *t);
 // check if given operation is a defined function
 int isFunc(Token *t);
+// check if token is operator
+int isOperator(Token *t);
+// check if given token is constant or variable
+int isFinal(Token *t);
 // check if given operation is a defined constant: 'PI' or 'e'
 int isDefinedConst(Token *t);
+
 
 #endif //CPROJECTSCALCULATOR_INPUT_PARSE_H

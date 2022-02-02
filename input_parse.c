@@ -8,7 +8,7 @@ const char fileName[] = "saved_lines_file.txt";
 #include <stdlib.h>
 
 // list of reserved identifiers
-const char RESERVED[NUM_OF_RESERVED][6] = {
+const char * RESERVED[NUM_OF_RESERVED] = {
         "+", "-", "*", "/", "^", "=", "(", ")", ",",
         "sin", "cos", "tg", "log", "ln", "sqrt", "pow", "abs", "exp", "real", "imag", "mag", "phase",
         "e", "PI"};
@@ -50,18 +50,19 @@ int isDigitOrJ(char c) {
 int isAllowedInId(char c) {
     return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || '0' <= c && c <= '9';
 }
-// check if given token is constant or variable
-int isFinal(Token *t){
-    return t->type == constant || t->type == identifier && t->act == none;
-}
+
+//check if given token is constant
+int isConstant(Token *t) { return t->type == constant; }
 // check if given operation is a defined function
-int isFunc(Token *t) {
-    return t->type == identifier && t->act != none;
-}
+int isFunc(Token *t) { return t->type == identifier && t->act != none; }
+// check if token is operator
+int isOperator(Token *t) { return t->type == operation; }
+// check if token is variable
+int isVariable(Token *t) { return t->type == identifier && t->act == none; }
+// check if given token is constant or variable
+int isFinal(Token *t) { return isConstant(t) || isVariable(t); }
 // check if given operation is a defined constant 'PI' or 'e'
-int isDefinedConst(Token *t) {
-    return t->type == identifier && t->act == PI || t->act == E;
-}
+int isDefinedConst(Token *t) { return t->type == identifier && t->act == PI || t->act == E; }
 
 // check if entered expression present a correct bracket sequence
 int checkBracketSequence(TokenArray expr) {
