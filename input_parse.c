@@ -55,9 +55,9 @@ int isAllowedInId(char c) {
 int checkBracketSequence(TokenArray expr) {
     int depth = 0;
     for (int i = 0; i < expr.size; ++i)
-        if (expr.array[i].type == operation) {
-            if (expr.array[i].act == bro) ++depth;
-            if (expr.array[i].act == brc) --depth;
+        if (expr.self[i].type == operation) {
+            if (expr.self[i].act == bro) ++depth;
+            if (expr.self[i].act == brc) --depth;
             if (depth < 0) return 0;
         }
     return depth == 0;
@@ -66,7 +66,7 @@ int checkBracketSequence(TokenArray expr) {
 // check if between every constant or variable in expression is operation
 int checkNoFollowingConstants(TokenArray expr) {
     for (int i = 0; i < expr.size - 1; ++i) {
-        if (isFinal(expr.array + i) && isFinal(expr.array + i + 1))
+        if (isFinal(expr.self + i) && isFinal(expr.self + i + 1))
             return 0;
     }
     return 1;

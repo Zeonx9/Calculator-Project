@@ -43,7 +43,7 @@ typedef struct {
 // array of tokens: pointer to start and size of it
 typedef struct {
     int size;
-    Token * array;
+    Token * self;
 } TokenArray;
 
 // raw input and metadata for parsing

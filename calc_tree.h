@@ -11,6 +11,24 @@ typedef struct tree_node {
     struct tree_node *right;
 } TreeNode;
 
+typedef struct node_expr{
+    int isToken;
+    union {
+        Token * token;
+        struct {
+            int size;
+            struct node_expr * self;
+        } expr;
+    };
+} ExprNode;
+
+typedef struct {
+    int size;
+    ExprNode * self;
+} Expression;
+
+Expression handleBrackets(TokenArray expr);
+TreeNode * buildTree(Expression expr);
 // recursively build a calculation tree
 // search for the last-evaluated operation of function and then
 // call makeTree() function on each of its operands
