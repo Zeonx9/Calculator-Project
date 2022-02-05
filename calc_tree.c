@@ -138,7 +138,7 @@ TreeNode * buildTree(Expression expr) {
         TreeNode *child = tree->right;
         if (!(isOperator(&child->data) && child->data.act == cma)) {
             printf("Error: wrong log() or pow() format!\n");
-            exit(WRONG_LOG);
+            exit(WRONG_LOG_POW);
         }
         tree->right = child->right, tree->left = child->left;
         free(child);

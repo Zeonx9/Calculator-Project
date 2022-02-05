@@ -2,32 +2,34 @@
 #include "input_parse.h"
 
 #ifdef T
-#define MAX_EXPR_LEN 300
-const char fileName[] = "saved_lines_file.txt";
+#define MAX_EXPR_LEN 300 // максимальная длинна строки
+const char fileName[] = "saved_lines_file.txt"; // имя файла куда сохраняется выражение
 #include <string.h>
 #include <stdlib.h>
 
-// list of reserved identifiers
+// реализация массва зарезервированных идентификаторов, если такое слово будет встречено в строке,
+// оно будет интерпреитоваться как оператор,  функция или математическая константа
 const char * RESERVED[NUM_OF_RESERVED] = {
-        "+", "-", "*", "/", "^", "=", "(", ")", ",",
-        "sin", "cos", "tg", "log", "ln", "sqrt", "pow", "abs", "exp", "real", "imag", "mag", "phase",
-        "e", "PI"};
+        "+", "-", "*", "/", "^", "=", "(", ")", ",", // операторы
+        "sin", "cos", "tg", "log", "ln", "sqrt", "pow", "abs", "exp", "real", "imag", "mag", "phase", // функции
+        "e", "PI"}; // математические константы
 
-// return a code of given operator if it is else a 'none' code
+// возвращает код встреченого символа, если он представляет собой оператор иначе возвращает код none
 Function getOpCode(char c) {
     for (int i = 0; i < NUM_OF_OPERATIONS; ++i)
         if (*RESERVED[i] == c) return (Function) i;
     return none;
 }
 
-// return a code of given function if it is else a 'none' code
+// возвращает код встреченого слова, если строка не является зарезервированным словом, то возвращается none
 Function getFuncCode(const char *s) {
     for (int i = NUM_OF_OPERATIONS; i < NUM_OF_RESERVED; ++i)
         if (strcmp(s, RESERVED[i]) == 0) return (Function) i;
     return none;
 }
 
-// search for existing variable if not found add new; return index
+// находит переменную по имени в пуле переменных и возвращает ее индекс,
+// если совпадений нет, то добанляет встреченное имя в конец пула и возвращает индекс
 int getVariableID(const char *name, char **pool, int *len) {
     for (int i = 0; i < *len; ++i)
         if (strcmp(pool[i], name) == 0) return i;
@@ -35,23 +37,23 @@ int getVariableID(const char *name, char **pool, int *len) {
     return *len - 1;
 }
 
-// skip all leading white spaces if any
+// пропускает в строке пробелы или символы новой строки
 void skip(char ** p) {
     while (**p == ' ' || **p == '\n') (*p)++;
 }
 
-// constants can contain only numbers, floating point and 'j'
-// check if given character allowed in constant literal
+// проверка на то, что встреченный символ являеся цифрой, десятичной точкой или 'j',
+// только эти символы могут входить в и начинать числовую константу
 int isDigitOrJ(char c) {
     return '0' <= c && c <= '9' || c == '.' || c == 'j';
 }
-// identifiers can contain letters and numbers (not leading)
-// check if given character allowed in identifier
+// в идентификаторах разрашены буквы любого регистра и цифры ( не лидирующие )
+// метод проверяет переданный символ и возращает резултьтат проверки
 int isAllowedInId(char c) {
     return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || '0' <= c && c <= '9';
 }
 
-// check if entered expression present a correct bracket sequence
+// алгоритм проверки правильности скобочной последовательности, линейная проверка всего выражения
 int checkBracketSequence(TokenArray expr) {
     int depth = 0;
     for (int i = 0; i < expr.size; ++i)
@@ -63,7 +65,7 @@ int checkBracketSequence(TokenArray expr) {
     return depth == 0;
 }
 
-// check if between every constant or variable in expression is operation
+// линейная проверка выражения, что нет подряд идущих числовых констант или переменных
 int checkNoFollowingConstants(TokenArray expr) {
     for (int i = 0; i < expr.size - 1; ++i) {
         if (isFinal(expr.self + i) && isFinal(expr.self + i + 1))
@@ -72,76 +74,72 @@ int checkNoFollowingConstants(TokenArray expr) {
     return 1;
 }
 
-//check if given token is constant
+// реализации соответствущих методов проверки токенов
 int isConstant(Token *t) { return t->type == constant; }
-// check if given operation is a defined function
 int isFunc(Token *t) { return t->type == identifier && t->act != none; }
-// check if token is operator
 int isOperator(Token *t) { return t->type == operation; }
-// check if token is variable
 int isVariable(Token *t) { return t->type == identifier && t->act == none; }
-// check if given token is constant or variable
 int isFinal(Token *t) { return isConstant(t) || isVariable(t); }
-// check if given operation is a defined constant 'PI' or 'e'
 int isDefinedConst(Token *t) { return t->type == identifier && t->act == PI || t->act == E; }
 
-// split given string (single line) into array of tokens
+// главный метод парсинга стороки, по началу каждого "слова" определяет тип токена,
+// который будет это слово представлять, принимает на вход строку,
+// а также пул переменных и указатель на количество переменных
+// возвращает массив токенов, представляющий данное выражение
 TokenArray tokenize (char *expr, char ** variablesPool, int *varCount) {
-    // int variables: counters and temporary
     int size = 0, bufCount = 0, strLen = (int) strlen(expr), tmp;
-    // resulting array of tokens
     Token * tokens = malloc(strLen * sizeof(Token));
-    // buffer for a current single token
     char buf[NUM_OF_RESERVED] = "", *pos = expr;
 
     skip(&pos);
     while (*pos) {
-        // pointer to current token and vars for values of its fields
+        // t это указатель на текущий токен в его поля будет записана информация о следущем встреченном элементе
         Token *t = tokens + size++;
+        // переменные для хранения рвеменных значений полей для токена
         TokenType type; double value; Function actCode; int isImaginary, varId;
 
+        // проверка первого символа элемента, на то, что он может встетиться в правильном выражении
         if (!isDigitOrJ(*pos) && !isAllowedInId(*pos) && *pos != ' ' && *pos != ',' && *pos == '\n') {
             printf("Error: %c character is not allowed\n", *pos);
             exit(ILLEGAL_CHAR);
         }
 
         if (isDigitOrJ(*pos)) {
-            // if current token is a constant literal
+            // если слово началось с цифры, точки или j то это слово является численной константой
             type = constant;
-            // get whole literal into buffer
+            // cчитать все слово в буфер
             while (*pos && isDigitOrJ(*pos))
                 buf[bufCount++] = *pos++;
             buf[bufCount] = 0;
-
-            value = bufCount == 1 && *buf == 'j' ? 1 : atof(buf); // get the value NOLINT(cert-err34-c)
-            isImaginary = buf[bufCount - 1] == 'j'; // check if imaginary
+            // определить соответствующие поля
+            value = bufCount == 1 && *buf == 'j' ? 1 : atof(buf); // NOLINT(cert-err34-c)
+            isImaginary = buf[bufCount - 1] == 'j';
         } else if ((tmp = getOpCode(*pos)) != none) {
-            // if current token is operator
+            // символ это оператор
             type = operation;
             actCode = tmp; ++pos;
         } else {
-            // else it is identifier of function or variable
+            // иначе это либо переменная либо функция
             type = identifier;
-            // get whole literal into buffer
+            // считать все в буфер
             while (*pos && isAllowedInId(*pos))
                 buf[bufCount++] = *pos++;
             buf[bufCount] = 0;
-
-            // if identifier is in reversed group it is function
+            // если слово зарезервированно - это функция
             if ((tmp = getFuncCode(buf)) != none)
                 varId = -1;
-            else // else it is a variable
+            else // иначе переменная
                 varId = getVariableID(buf, variablesPool, varCount);
             actCode = tmp;
         }
 
-        // assign current token its fields values
+        // установить токену нужные значения полей
         t->type = type;
         if (type == constant)
-            // fields for constants
+            // поля числовых констант
             t->value = value, t->imag = isImaginary;
         else
-            // fields for non-constants
+            // поля для операторов и идентификоторов
             t->act = actCode, t->varID = varId;
         bufCount = 0;
         skip(&pos);
@@ -149,49 +147,49 @@ TokenArray tokenize (char *expr, char ** variablesPool, int *varCount) {
     return (TokenArray) {size, tokens};
 }
 
-// get user input and prepare it for parsing
+// реализация метода считывания и первичной обработки
 InputExpression getInput() {
     InputExpression ie = {};
-    // buffer for line and a file where everything will be saved
     char buffer[MAX_EXPR_LEN];
-    ie.savedFile = fopen(fileName, "w+");
-    // process each given line if empty line entered then exit from loop
+    ie.savedFile = fopen(fileName, "w+"); // файл открыт для записи и чтения
+    // считывать строки, пока не встретится пустая
     while (*fgets(buffer, MAX_EXPR_LEN, stdin) != '\n') {
         ie.bufferSize += (int) strlen(buffer);
         ie.lineCount++;
-        fputs(buffer, ie.savedFile);
+        fputs(buffer, ie.savedFile); // сохранить строку в файл
     }
-    // seek start of file for further reading
+    // установить указатьель файла в начало, для последующего чтения
     fseek(ie.savedFile, 0, SEEK_SET);
     return ie;
 }
 
-// parse all given lines using tokenize method; return array of every tokenized line
+// парсинг всего введенного выражения с применением метода tokenize() для каждой строки
 ParsedExpression parseExpression(InputExpression ie) {
-    // resulting array
     TokenArray * output = malloc(ie.lineCount * sizeof(TokenArray));
-    // pool of variables actually is a set of strings
+    // создания пула переменных
     int varCount = 0;
     char **variablesPool = malloc(ie.bufferSize * sizeof (char *));
     for (int i = 0; i < ie.bufferSize; ++i)
         variablesPool[i] = malloc(LEN_OF_IDENTIFIER * sizeof(char));
 
-    char curExpr[MAX_EXPR_LEN]; // buffer for current string
+    char curExpr[MAX_EXPR_LEN]; // буфер для текужей строки
     for (int i = 0; i < ie.lineCount; ++i) {
-        // tokenize every line given and store into resulting array
+        // считать строку и использовать tokenize
         fgets(curExpr, MAX_EXPR_LEN, ie.savedFile);
         output[i] = tokenize(curExpr, variablesPool, &varCount);
+        // проверка на правильность скобок
         if (!checkBracketSequence(output[i])) {
             printf("Error: Entered expression has incorrect bracket sequence! line: %d\n", i + 1);
             exit(INCORRECT_BRACKETS);
         }
+        // проверка, что нет подряд идущих констант или переменных
         if (!checkNoFollowingConstants(output[i])) {
             printf("Error: is not a single expression, two numbers or variables without operator!\n");
             exit(FOLLOWING_CONSTANTS);
         }
     }
 
-    //free all used resources
+    // освободить ресурсы использованные под пул и закрыть файл
     for (int i = 0; i < ie.bufferSize; ++i)
         free(variablesPool[i]);
     free(variablesPool);
