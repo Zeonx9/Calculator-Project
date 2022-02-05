@@ -134,6 +134,15 @@ TreeNode * buildTree(Expression expr) {
     }
     tree->right = buildTree((Expression) {expr.size - ind - 1, expr.self + ind + 1});
     tree->left = ind == 0 ? NULL :  buildTree((Expression) {ind, expr.self});
+    if (isFunc(&tree->data) && (tree->data.act == log || tree->data.act == pov)) {
+        TreeNode *child = tree->right;
+        if (!(isOperator(&child->data) && child->data.act == cma)) {
+            printf("Error: wrong log() or pow() format!\n");
+            exit(WRONG_LOG);
+        }
+        tree->right = child->right, tree->left = child->left;
+        free(child);
+    }
     return tree;
 }
 #endif
