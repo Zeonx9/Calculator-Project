@@ -5,11 +5,9 @@
 #include "func_wraps.h"
 #include "tests_print.h"
 
-// приоритеты операций
-int priority(Token * t) {
-    // в убывающем порядке
-    // функции > ^ > */ > +- > , > =
-    if (t->type == identifier && t->act != none) return 6;
+/** приоритеты операций в убывающем порядке
+  * функции > ^ > * и , > + и - > , > = **/
+int priority(Token * t) {    if (t->type == identifier && t->act != none) return 6;
     if (t->type != operation) return -1;
     switch (t->act) {
         case eqv: return 1;
@@ -54,7 +52,7 @@ complex double calcExpr(TreeNode * tree, complex double * variables, int * initi
     return funcArray[tree->data->act](a, b);
 }
 
-// очистить занятую под дерево память
+/// очистить занятую под дерево память
 void deleteTree(TreeNode * tree) {
     if (!tree) return;
     deleteTree(tree->left);
@@ -62,7 +60,7 @@ void deleteTree(TreeNode * tree) {
     free(tree);
 }
 
-// очистить занятую под выражение память
+/// очистить занятую под выражение память
 void deleteExpression(Expression e) {
     for (int i = 0; i < e.size; ++i)
         if (!e.self[i].isToken)
@@ -123,7 +121,8 @@ Expression handleBrackets(TokenArray expr) {
     return out;
 }
 
-// поиск последнего выполняющегося оператора, который будет корнем дерева
+/** поиск последнего выполняющегося оператора, который будет корнем дерева
+  * возвращает индекс найденого элемента или -1 если не найдено **/
 int indexOfRootOperation(Expression expr) {
     int ind = -1, curOpPriority = 0;
     // проверить для каждого узла если он токен и может иметь поддеревья

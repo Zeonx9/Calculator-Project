@@ -5,6 +5,7 @@ void printToken(Token * t) {
     else if (t->type == operation || (t->type == identifier && t->act != none)) printf("%s", RESERVED[t->act]);
     else printf("var(id:%d)", t->varID);
 }
+
 void printTree(TreeNode * tn) {
     if (!tn) { printf("null"); return;}
     printToken(tn->data);
