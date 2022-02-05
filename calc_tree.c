@@ -8,10 +8,10 @@
 #include "tests_print.h"
 #ifdef T
 
-// prioritize operations
+// приоритеты операций
 int priority(Token * t) {
-    // in descending order:
-    // functions > ^ > *,/ > +,- > , > =
+    // в убывающем порядке
+    // функции > ^ > */ > +- > , > =
     if (t->type == identifier && t->act != none) return 6;
     if (t->type != operation) return -1;
     switch (t->act) {
@@ -24,27 +24,27 @@ int priority(Token * t) {
     }
 }
 
-// recursively calculate single tree of expression
+// рекурсивно вычисляет выражение
 complex double calcExpr(TreeNode * tree, complex double * variables, int * initialized) {
     if (!tree) return 0;
-    // if current node present constant return its value without recursion
+    // если узел содержит константу то вернуть ее значение
     if (isConstant(&tree->data)) return tree->data.value * (tree->data.imag ? I : 1);
-    //  for return if PI or E
+    //  вернуть значения математических констант
     if (isDefinedConst(&tree->data)) return funcArray[tree->data.act](0, 0);
-    // return value of variable
+    // вернуть значение переменной
     if (isVariable(&tree->data)) return variables[tree->data.varID];
 
-    // recursively calculate left subtree and right subtree
+    // рекурсивные вызовы подсчета операндов
     complex double b = calcExpr(tree->right, variables, initialized),
                    a = calcExpr(tree->left, variables, initialized);
 
-    // checking for usage of variable without assigning them
+    // проверка, что все используемые переменные инициализированы
     if (tree->left && isVariable(&tree->left->data) && tree->data.act != eqv && !initialized[tree->left->data.varID] ||
         tree->right && isVariable(&tree->right->data) && !initialized[tree->right->data.varID]) {
         printf("Error! using variable before assignment\n");
         exit(NOT_ASSIGNED);
     }
-    // asserting left side of '=' is a variable
+    // проверка, что слева от равно стоит переменная
     if (tree->data.act == eqv) {
         if (!isVariable(&tree->left->data)) {
             printf("Error! left part of assigning has to be variable\n");
@@ -53,22 +53,24 @@ complex double calcExpr(TreeNode * tree, complex double * variables, int * initi
         initialized[tree->left->data.varID] = 1;
         return  variables[tree->left->data.varID] = b;
     }
-    // perform action and return result
+    // произвести действие над операндами, вернуть результат
     return funcArray[tree->data.act](a, b);
 }
 
-// calculate whole entered expression by building
+// посчитать все выражение построив для каждой строки дерево и посчитав
 complex double calculate(ParsedExpression pe) {
-    // allocate memory for all variable in given expression
+    // выделить память под переменные исползуемые в выражении
     complex double variables[pe.varCount];
-    // checking array if variable assigned or not
+    // создать массив флагов инициализации
     int initialized[pe.varCount];
     complex double result;
     for (int i = 0; i < pe.varCount; ++i) initialized[i] = 0;
     for (int i = pe.lineCount - 1; i >= 0; --i) {
+        // построить дерево
         TreeNode *tree = buildTree(handleBrackets(pe.lines[i]));
         printTree(tree);      // debug
         printf("\n");         // debug
+        // вычислить
         result = calcExpr(tree, variables, initialized);
         printResult(result);  // debug
         printf("\n");         // debug
@@ -76,14 +78,17 @@ complex double calculate(ParsedExpression pe) {
     return result;
 }
 
+// обработка скобок
 Expression handleBrackets(TokenArray expr) {
     Expression out = {0, malloc(expr.size * sizeof(ExprNode))};
     int i = 0;
     for (Token * cur = expr.self; i < expr.size; ++cur, ++i) {
         ExprNode node;
         if (!(isOperator(cur) && cur->act == bro)) {
+            // если не встречена открывающая скобка, то узел соответствует токену
             node.isToken = 1, node.token = cur;
         } else {
+            // для встреченной скобки ищется парная, все выражение внутри выделяется
             int k = 0, depth = 0;
             for (Token * end = cur; k == 0 || depth != 0; ++k, ++end) {
                 if (isOperator(end)) {
@@ -92,6 +97,7 @@ Expression handleBrackets(TokenArray expr) {
                 }
             }
             node.isToken = 0;
+            // рекурсивная проверка на скобаки и присвоение текущему узлу всего выделенного выражения
             Expression bracketsOff = handleBrackets((TokenArray) {k - 2, cur + 1});
             node.expr.size = bracketsOff.size, node.expr.self = bracketsOff.self;
             cur += k - 1, i += k - 1;
@@ -101,39 +107,47 @@ Expression handleBrackets(TokenArray expr) {
     return out;
 }
 
+// поиск последнего выполняющегося оператора, который будет корнем дерева
 int indexOfRootOperation(Expression expr) {
-    int ind = -1, curOpDepth = 0, curOpPriority = 0, depth = 0;
-    // for each token if it is operator check its priority and bracket-depth
+    int ind = -1, curOpPriority = 0;
+    // проверить для каждого узла если он токен и может иметь поддеревья
     for (ExprNode *cur = expr.self; cur < expr.self + expr.size; ++cur)
         if (cur->isToken) {
+            // пропустить все токены без действия
             if (priority(cur->token) < 0) continue;
-            // if no operator found or current operator is lower depth or same but lower priority then update
-            if (!isFinal(cur->token) &&
-                    (ind < 0 || depth < curOpDepth || curOpDepth == depth && priority(cur->token) <= curOpPriority)) {
+            // обновить оператор если его приоритет ниже или он стоит левее
+            if (ind < 0 || priority(cur->token) <= curOpPriority) {
                 ind = (int) (cur - expr.self);
-                curOpDepth = depth;
                 curOpPriority = priority(cur->token);
             }
         }
     return ind;
 }
 
+// построение дерева
 TreeNode * buildTree(Expression expr) {
+    // проверить, что выражение не пусто
     if (!expr.size) {
-        printf("Error: No arguments passed2!\n");
+        printf("Error: No arguments passed!\n");
         exit(EMPTY_BRACKETS);
     }
+    // найти коренную операцию
     int ind = indexOfRootOperation(expr);
+    // если нет операции на данном уровне вложенности и первый узел не токен,
+    // то рекурсивно построить дерево от выражения узла
     if (ind < 0 && !expr.self[0].isToken)
             return buildTree((Expression) {expr.self[0].expr.size, expr.self[0].expr.self});
+    // выделить память под узел и присвоить информацию
     TreeNode *tree = malloc(sizeof(TreeNode));
     tree->data = *expr.self[ind < 0 ? 0 : ind].token;
     if (ind < 0 || isDefinedConst(&tree->data)) {
         tree->left = tree->right = NULL;
         return tree;
     }
+    // рекурсивно опрделить поддеревья
     tree->right = buildTree((Expression) {expr.size - ind - 1, expr.self + ind + 1});
     tree->left = ind == 0 ? NULL :  buildTree((Expression) {ind, expr.self});
+    // проверка, что у функций логарифма и возведения в степень два аргумента перечисленных через запятую
     if (isFunc(&tree->data) && (tree->data.act == log || tree->data.act == pov)) {
         TreeNode *child = tree->right;
         if (!(isOperator(&child->data) && child->data.act == cma)) {
