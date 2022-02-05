@@ -25,33 +25,33 @@ int priority(Token * t) {
 complex double calcExpr(TreeNode * tree, complex double * variables, int * initialized) {
     if (!tree) return 0;
     // если узел содержит константу то вернуть ее значение
-    if (isConstant(&tree->data)) return tree->data.value * (tree->data.imag ? I : 1);
+    if (isConstant(tree->data)) return tree->data->value * (tree->data->imag ? I : 1);
     //  вернуть значения математических констант
-    if (isDefinedConst(&tree->data)) return funcArray[tree->data.act](0, 0);
+    if (isDefinedConst(tree->data)) return funcArray[tree->data->act](0, 0);
     // вернуть значение переменной
-    if (isVariable(&tree->data)) return variables[tree->data.varID];
+    if (isVariable(tree->data)) return variables[tree->data->varID];
 
     // рекурсивные вызовы подсчета операндов
     complex double b = calcExpr(tree->right, variables, initialized),
                    a = calcExpr(tree->left, variables, initialized);
 
     // проверка, что все используемые переменные инициализированы
-    if (tree->left && isVariable(&tree->left->data) && tree->data.act != eqv && !initialized[tree->left->data.varID] ||
-        tree->right && isVariable(&tree->right->data) && !initialized[tree->right->data.varID]) {
+    if (tree->left && isVariable(tree->left->data) && tree->data->act != eqv && !initialized[tree->left->data->varID] ||
+        tree->right && isVariable(tree->right->data) && !initialized[tree->right->data->varID]) {
         printf("Error! using variable before assignment\n");
         exit(NOT_ASSIGNED);
     }
     // проверка, что слева от равно стоит переменная
-    if (tree->data.act == eqv) {
-        if (!isVariable(&tree->left->data)) {
+    if (tree->data->act == eqv) {
+        if (!isVariable(tree->left->data)) {
             printf("Error! left part of assigning has to be variable\n");
             exit(CANNOT_ASSIGN);
         }
-        initialized[tree->left->data.varID] = 1;
-        return  variables[tree->left->data.varID] = b;
+        initialized[tree->left->data->varID] = 1;
+        return  variables[tree->left->data->varID] = b;
     }
     // произвести действие над операндами, вернуть результат
-    return funcArray[tree->data.act](a, b);
+    return funcArray[tree->data->act](a, b);
 }
 
 // очистить занятую под дерево память
@@ -155,8 +155,8 @@ TreeNode * buildTree(Expression expr) {
             return buildTree((Expression) {expr.self[0].expr.size, expr.self[0].expr.self});
     // выделить память под узел и присвоить информацию
     TreeNode *tree = malloc(sizeof(TreeNode));
-    tree->data = *expr.self[ind < 0 ? 0 : ind].token;
-    if (ind < 0 || isDefinedConst(&tree->data)) {
+    tree->data = expr.self[ind < 0 ? 0 : ind].token;
+    if (ind < 0 || isDefinedConst(tree->data)) {
         tree->left = tree->right = NULL;
         return tree;
     }
@@ -164,9 +164,9 @@ TreeNode * buildTree(Expression expr) {
     tree->right = buildTree((Expression) {expr.size - ind - 1, expr.self + ind + 1});
     tree->left = ind == 0 ? NULL :  buildTree((Expression) {ind, expr.self});
     // проверка, что у функций логарифма и возведения в степень два аргумента перечисленных через запятую
-    if (isFunc(&tree->data) && (tree->data.act == log || tree->data.act == pov)) {
+    if (isFunc(tree->data) && (tree->data->act == log || tree->data->act == pov)) {
         TreeNode *child = tree->right;
-        if (!(isOperator(&child->data) && child->data.act == cma)) {
+        if (!(isOperator(child->data) && child->data->act == cma)) {
             printf("Error: wrong log() or pow() format!\n");
             exit(WRONG_LOG_POW);
         }

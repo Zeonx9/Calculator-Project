@@ -7,7 +7,7 @@ void printToken(Token * t) {
 }
 void printTree(TreeNode * tn) {
     if (!tn) { printf("null"); return;}
-    printToken(&tn->data);
+    printToken(tn->data);
     if (tn->right || tn->left) {
         printf(" { ");
         printTree(tn->left);

@@ -9,9 +9,9 @@
  *  также ссылки на левое и правое поддерево left и right соответствено типа TreeNode *
  *  если у узла нет какого либо поддерева или обоих, то записывается значение NULL **/
 typedef struct tree_node {
-    Token data;
-    struct tree_node *left;
-    struct tree_node *right;
+    Token * data;
+    struct tree_node * left;
+    struct tree_node * right;
 } TreeNode;
 
 /** струтура узел выражения представляет либо токен либо массив токенов
