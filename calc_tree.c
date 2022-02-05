@@ -1,12 +1,9 @@
-#define T
-
 #include <malloc.h>
 #include <assert.h>
 #include <complex.h>
 #include "calc_tree.h"
 #include "func_wraps.h"
 #include "tests_print.h"
-#ifdef T
 
 // приоритеты операций
 int priority(Token * t) {
@@ -159,4 +156,3 @@ TreeNode * buildTree(Expression expr) {
     }
     return tree;
 }
-#endif
