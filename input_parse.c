@@ -198,4 +198,10 @@ ParsedExpression parseExpression(InputExpression ie) {
     return (ParsedExpression) {output, ie.lineCount, varCount};
 }
 
+// освобождение ресурсов
+void DeletePE(ParsedExpression pe) {
+    for (int i = 0; i < pe.lineCount; ++i)
+        free(pe.lines[i].self);
+    free(pe.lines);
+}
 #endif

@@ -54,6 +54,22 @@ complex double calcExpr(TreeNode * tree, complex double * variables, int * initi
     return funcArray[tree->data.act](a, b);
 }
 
+// очистить занятую под дерево память
+void deleteTree(TreeNode * tree) {
+    if (!tree) return;
+    deleteTree(tree->left);
+    deleteTree(tree->right);
+    free(tree);
+}
+
+// очистить занятую под выражение память
+void deleteExpression(Expression e) {
+    for (int i = 0; i < e.size; ++i)
+        if (!e.self[i].isToken)
+            deleteExpression((Expression) {e.self[i].expr.size, e.self[i].expr.self});
+    free(e.self);
+}
+
 // посчитать все выражение построив для каждой строки дерево и посчитав
 complex double calculate(ParsedExpression pe) {
     // выделить память под переменные исползуемые в выражении
@@ -64,11 +80,14 @@ complex double calculate(ParsedExpression pe) {
     for (int i = 0; i < pe.varCount; ++i) initialized[i] = 0;
     for (int i = pe.lineCount - 1; i >= 0; --i) {
         // построить дерево
-        TreeNode *tree = buildTree(handleBrackets(pe.lines[i]));
+        Expression expr = handleBrackets(pe.lines[i]);
+        TreeNode *tree = buildTree(expr);
+        deleteExpression(expr);
         printTree(tree);      // debug
         printf("\n");         // debug
         // вычислить
         result = calcExpr(tree, variables, initialized);
+        deleteTree(tree);
         printResult(result);  // debug
         printf("\n");         // debug
     }
