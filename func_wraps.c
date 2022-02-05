@@ -1,8 +1,7 @@
 #include <math.h>
 #include "func_wraps.h"
 
-// function decoration to unify signature;
-// every function should have
+// функции-реализации имеют одинаковую сигнатуру, для гибкого использования в массиве функциональных указателей
 complex double fadd(complex double a, complex double b) {return a + b;}
 complex double fsub(complex double a, complex double b) {return a ? a - b : -b;}
 complex double fmul(complex double a, complex double b) {return a * b;}
@@ -23,7 +22,7 @@ complex double econ(complex double a, complex double b) {return M_E;}
 complex double picn(complex double a, complex double b) {return M_PI;}
 complex double nofn(complex double a, complex double b) {return 0;}
 
-// function pointer array to perform action by executing function by its id
+// массив указателей на функцию, положение функций соответствует перечислению Function
 complex double (*funcArray[]) (complex double, complex double) = {
         fadd, fsub, fmul, fdev, fpow, nofn, nofn, nofn, nofn,
         fsin, fcos, ftan, flog, flgn, fsrt, fpow, abso, expa, rily, imar, abso, phas,
