@@ -7,22 +7,7 @@ const char fileName[] = "saved_lines_file.txt"; // имя файла куда с
 #include <string.h>
 #include <stdlib.h>
 #include "func_wraps.h"
-
-//массив строк вывода ошибок
-char * errorMesseges[] = { "Error: Entered expression has incorrect bracket sequence!\n",
-                           "Error: character is not allowed\n",
-                           "Error: No arguments passed!\n",
-                           "Error: is not a single expression, two numbers or variables without operator!\n",
-                           "Error: wrong log() or pow() format!\n",
-                           "Error! left part of assigning has to be variable\n",
-                           "Error! using variable before assignment\n" };
-// функция принимает код ошибки,
-// коды определены в заголовочном файле, выводит нужное сообщение и выходит с нужным кодом
-void errorLog(int code){
-    // INCORRECT_BRACKETS - ошибка с наименьшим кодом остальные следуют попорядку
-    printf("%s", errorMesseges[code - INCORRECT_BRACKETS]);
-    exit(code);
-}
+#include "error_handle.h"
 /** реализация массва зарезервированных идентификаторов, если такое слово будет встречено в строке,
   * оно будет интерпреитоваться как оператор,  функция или математическая константа **/
 const char * RESERVED[NUM_OF_RESERVED] = {

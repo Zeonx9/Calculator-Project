@@ -1,9 +1,9 @@
 #include <malloc.h>
-#include <assert.h>
 #include <complex.h>
 #include "calc_tree.h"
 #include "func_wraps.h"
 #include "tests_print.h"
+#include "error_handle.h"
 
 /** приоритеты операций в убывающем порядке
   * функции > ^ > * и , > + и - > , > = **/
@@ -151,7 +151,7 @@ TreeNode * buildTree(Expression expr) {
         tree->left = tree->right = NULL;
         return tree;
     }
-    // рекурсивно опрделить поддеревья
+    // рекурсивно  поддеревья
     tree->right = buildTree((Expression) {expr.size - ind - 1, expr.self + ind + 1});
     tree->left = ind == 0 ? NULL :  buildTree((Expression) {ind, expr.self});
     // проверка, что у функций логарифма и возведения в степень два аргумента перечисленных через запятую
@@ -162,5 +162,8 @@ TreeNode * buildTree(Expression expr) {
         tree->right = child->right, tree->left = child->left;
         free(child);
     }
+    if (isFunc(tree->data) && !(tree->data->act == log || tree->data->act == pov) &&
+            isOperator(tree->right->data) && tree->right->data->act == cma)
+        errorLog(TOO_MUCH_ARGS);
     return tree;
 }
