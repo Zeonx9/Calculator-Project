@@ -24,8 +24,6 @@ complex double calcExpr(TreeNode * tree, complex double * variables, int * initi
     if (!tree) return 0;
     // если узел содержит константу то вернуть ее значение
     if (isConstant(tree->data)) return tree->data->value * (tree->data->imag ? I : 1);
-    //  вернуть значения математических констант
-    if (isDefinedConst(tree->data)) return funcArray[tree->data->act](0, 0);
     // вернуть значение переменной
     if (isVariable(tree->data)) return variables[tree->data->varID];
 
@@ -35,16 +33,12 @@ complex double calcExpr(TreeNode * tree, complex double * variables, int * initi
 
     // проверка, что все используемые переменные инициализированы
     if (tree->left && isVariable(tree->left->data) && tree->data->act != eqv && !initialized[tree->left->data->varID] ||
-        tree->right && isVariable(tree->right->data) && !initialized[tree->right->data->varID]) {
-        printf("Error! using variable before assignment\n");
-        exit(NOT_ASSIGNED);
-    }
+        tree->right && isVariable(tree->right->data) && !initialized[tree->right->data->varID])
+        errorLog(NOT_ASSIGNED);
     // проверка, что слева от равно стоит переменная
     if (tree->data->act == eqv) {
-        if (!isVariable(tree->left->data)) {
-            printf("Error! left part of assigning has to be variable\n");
-            exit(CANNOT_ASSIGN);
-        }
+        if (!isVariable(tree->left->data))
+            errorLog(CANNOT_ASSIGN);
         initialized[tree->left->data->varID] = 1;
         return  variables[tree->left->data->varID] = b;
     }
@@ -142,10 +136,8 @@ int indexOfRootOperation(Expression expr) {
 // построение дерева
 TreeNode * buildTree(Expression expr) {
     // проверить, что выражение не пусто
-    if (!expr.size) {
-        printf("Error: No arguments passed!\n");
-        exit(EMPTY_BRACKETS);
-    }
+    if (!expr.size)
+        errorLog(EMPTY_BRACKETS);
     // найти коренную операцию
     int ind = indexOfRootOperation(expr);
     // если нет операции на данном уровне вложенности и первый узел не токен,
@@ -155,7 +147,7 @@ TreeNode * buildTree(Expression expr) {
     // выделить память под узел и присвоить информацию
     TreeNode *tree = malloc(sizeof(TreeNode));
     tree->data = expr.self[ind < 0 ? 0 : ind].token;
-    if (ind < 0 || isDefinedConst(tree->data)) {
+    if (ind < 0) {
         tree->left = tree->right = NULL;
         return tree;
     }
@@ -165,10 +157,8 @@ TreeNode * buildTree(Expression expr) {
     // проверка, что у функций логарифма и возведения в степень два аргумента перечисленных через запятую
     if (isFunc(tree->data) && (tree->data->act == log || tree->data->act == pov)) {
         TreeNode *child = tree->right;
-        if (!(isOperator(child->data) && child->data->act == cma)) {
-            printf("Error: wrong log() or pow() format!\n");
-            exit(WRONG_LOG_POW);
-        }
+        if (!(isOperator(child->data) && child->data->act == cma))
+            errorLog(WRONG_LOG_POW);
         tree->right = child->right, tree->left = child->left;
         free(child);
     }

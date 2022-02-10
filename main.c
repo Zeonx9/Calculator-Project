@@ -5,9 +5,8 @@
 #include "tests_print.h"
 
 int main() {
-    InputExpression ie = getInput();
-    ParsedExpression pe = parseExpression(ie);
-    for (int i = 0; i < ie.lineCount; ++i) {
+    ParsedExpression pe = parseExpression();
+    for (int i = 0; i < pe.lineCount; ++i) {
         TokenArray ta = pe.lines[i];
         for (Token *t = ta.self; t < ta.self + ta.size; ++t)
             printToken(t), printf(" ");

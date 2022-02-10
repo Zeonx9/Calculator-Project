@@ -6,7 +6,23 @@
 const char fileName[] = "saved_lines_file.txt"; // имя файла куда сохраняется выражение
 #include <string.h>
 #include <stdlib.h>
+#include "func_wraps.h"
 
+//массив строк вывода ошибок
+char * errorMesseges[] = { "Error: Entered expression has incorrect bracket sequence!\n",
+                           "Error: character is not allowed\n",
+                           "Error: No arguments passed!\n",
+                           "Error: is not a single expression, two numbers or variables without operator!\n",
+                           "Error: wrong log() or pow() format!\n",
+                           "Error! left part of assigning has to be variable\n",
+                           "Error! using variable before assignment\n" };
+// функция принимает код ошибки,
+// коды определены в заголовочном файле, выводит нужное сообщение и выходит с нужным кодом
+void errorLog(int code){
+    // INCORRECT_BRACKETS - ошибка с наименьшим кодом остальные следуют попорядку
+    printf("%s", errorMesseges[code - INCORRECT_BRACKETS]);
+    exit(code);
+}
 /** реализация массва зарезервированных идентификаторов, если такое слово будет встречено в строке,
   * оно будет интерпреитоваться как оператор,  функция или математическая константа **/
 const char * RESERVED[NUM_OF_RESERVED] = {
@@ -80,7 +96,6 @@ int isFunc(Token *t) { return t->type == identifier && t->act != none; }
 int isOperator(Token *t) { return t->type == operation; }
 int isVariable(Token *t) { return t->type == identifier && t->act == none; }
 int isFinal(Token *t) { return isConstant(t) || isVariable(t); }
-int isDefinedConst(Token *t) { return t->type == identifier && t->act == PI || t->act == E; }
 
 /** главный метод парсинга стороки, по началу каждого "слова" определяет тип токена,
   * который будет это слово представлять, принимает на вход строку,
@@ -99,10 +114,8 @@ TokenArray tokenize (char *expr, char ** variablesPool, int *varCount) {
         TokenType type; double value; Function actCode; int isImaginary, varId;
 
         // проверка первого символа элемента, на то, что он может встетиться в правильном выражении
-        if (!isDigitOrJ(*pos) && !isAllowedInId(*pos) && *pos != ' ' && *pos != ',' && *pos == '\n') {
-            printf("Error: %c character is not allowed\n", *pos);
-            exit(ILLEGAL_CHAR);
-        }
+        if (!isDigitOrJ(*pos) && !isAllowedInId(*pos) && *pos != ' ' && *pos != ',' && *pos == '\n')
+            errorLog(ILLEGAL_CHAR);
 
         if (isDigitOrJ(*pos)) {
             // если слово началось с цифры, точки или j то это слово является численной константой
@@ -126,8 +139,13 @@ TokenArray tokenize (char *expr, char ** variablesPool, int *varCount) {
                 buf[bufCount++] = *pos++;
             buf[bufCount] = 0;
             // если слово зарезервированно - это функция
-            if ((tmp = getFuncCode(buf)) != none)
+            if ((tmp = getFuncCode(buf)) != none) {
                 varId = -1;
+                if (tmp == PI || tmp == E) {
+                    type = constant;
+                    value = funcArray[tmp](0, 0);
+                }
+            }
             else // иначе переменная
                 varId = getVariableID(buf, variablesPool, varCount);
             actCode = tmp;
@@ -147,24 +165,26 @@ TokenArray tokenize (char *expr, char ** variablesPool, int *varCount) {
     return (TokenArray) {size, tokens};
 }
 
-// реализация метода считывания и первичной обработки
+/** метод считывающий ввод с консоли и возвращиющий объект типа InputExpression
+*   ввод прекращается если введена путстая строка **/
 InputExpression getInput() {
     InputExpression ie = {};
     char buffer[MAX_EXPR_LEN];
     ie.savedFile = fopen(fileName, "w+"); // файл открыт для записи и чтения
     // считывать строки, пока не встретится пустая
     while (*fgets(buffer, MAX_EXPR_LEN, stdin) != '\n') {
-        ie.bufferSize += (int) strlen(buffer);
         ie.lineCount++;
         fputs(buffer, ie.savedFile); // сохранить строку в файл
     }
     // установить указатьель файла в начало, для последующего чтения
     fseek(ie.savedFile, 0, SEEK_SET);
+    ie.bufferSize = MAX_VARS_IN_LINE * ie.lineCount;
     return ie;
 }
 
 // парсинг всего введенного выражения с применением метода tokenize() для каждой строки
-ParsedExpression parseExpression(InputExpression ie) {
+ParsedExpression parseExpression() {
+    InputExpression ie = getInput();
     TokenArray * output = malloc(ie.lineCount * sizeof(TokenArray));
     // создания пула переменных
     int varCount = 0;
@@ -178,15 +198,11 @@ ParsedExpression parseExpression(InputExpression ie) {
         fgets(curExpr, MAX_EXPR_LEN, ie.savedFile);
         output[i] = tokenize(curExpr, variablesPool, &varCount);
         // проверка на правильность скобок
-        if (!checkBracketSequence(output[i])) {
-            printf("Error: Entered expression has incorrect bracket sequence! line: %d\n", i + 1);
-            exit(INCORRECT_BRACKETS);
-        }
+        if (!checkBracketSequence(output[i]))
+            errorLog(INCORRECT_BRACKETS);
         // проверка, что нет подряд идущих констант или переменных
-        if (!checkNoFollowingConstants(output[i])) {
-            printf("Error: is not a single expression, two numbers or variables without operator!\n");
-            exit(FOLLOWING_CONSTANTS);
-        }
+        if (!checkNoFollowingConstants(output[i]))
+            errorLog(FOLLOWING_CONSTANTS);
     }
 
     // освободить ресурсы использованные под пул и закрыть файл

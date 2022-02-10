@@ -10,6 +10,8 @@
 #define NUM_OF_OPERATIONS 9
 /// максимальная длинна идентификатора
 #define LEN_OF_IDENTIFIER 32
+/// максимальное количество пкркменных объявленных в одной строке
+#define MAX_VARS_IN_LINE 8
 
 // коды ошибок
 /// если выражение содержит неправильную скобочную последовательность
@@ -26,6 +28,12 @@
 #define CANNOT_ASSIGN 106
 /// использование переменной до ее объявления и присваивания ей значения
 #define NOT_ASSIGNED 107
+
+// вывод сообщенй об ошибке
+/// массив сообщений об ошибках
+extern char * errorMesseges[];
+/// фунция выводящая сообщене c cоответствующим кодом на экран
+void errorLog(int code);
 
 /// массив содержащий все зарезервированные слова, а также символы операторов
 extern const char * RESERVED[NUM_OF_RESERVED];
@@ -80,11 +88,9 @@ typedef struct {
     int varCount;
 } ParsedExpression;
 
-/** метод считывающий ввод с консоли и возвращиющий объект типа InputExpression
-*   ввод прекращается если введена путстая строка **/
-InputExpression getInput();
+
 /// основной метод парсинга, принимает объект InputExpression и возвращает объект ParsedExpression
-ParsedExpression parseExpression(InputExpression ie);
+ParsedExpression parseExpression();
 
 // булевые методы проверки токена на то, какая информация в нем хранится
 /// являеся ли токен численной константой
@@ -98,8 +104,6 @@ int isOperator(Token *t);
 /** проверка на то, что токен не имеет действия,
  *  то есть является переменной или численной константой **/
 int isFinal(Token *t);
-/// является ли токен математической константой PI или e
-int isDefinedConst(Token *t);
 
 /// метод для удаления и освобождения ресурсов занятых во время обработки
 void deletePe(ParsedExpression pe);
