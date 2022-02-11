@@ -2,7 +2,6 @@
 #include <complex.h>
 #include "calc_tree.h"
 #include "func_wraps.h"
-#include "tests_print.h"
 #include "error_handle.h"
 
 /** приоритеты операций в убывающем порядке
@@ -65,23 +64,17 @@ void deleteExpression(Expression e) {
 // посчитать все выражение построив для каждой строки дерево и посчитав
 complex double calculate(ParsedExpression pe) {
     // выделить память под переменные исползуемые в выражении
-    complex double variables[pe.varCount];
+    complex double variables[pe.varCount], result;
     // создать массив флагов инициализации
     int initialized[pe.varCount];
-    complex double result;
     for (int i = 0; i < pe.varCount; ++i) initialized[i] = 0;
     for (int i = pe.lineCount - 1; i >= 0; --i) {
         // построить дерево
         Expression expr = handleBrackets(pe.lines[i]);
         TreeNode *tree = buildTree(expr);
         deleteExpression(expr);
-        printTree(tree);      // debug
-        printf("\n");         // debug
-        // вычислить
         result = calcExpr(tree, variables, initialized);
         deleteTree(tree);
-        printResult(result);  // debug
-        printf("\n");         // debug
     }
     return result;
 }

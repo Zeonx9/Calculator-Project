@@ -53,7 +53,7 @@ typedef struct {
 typedef struct {
     int lineCount; // количество строк в выражении
     FILE *savedFile; // файл с сохраненными данными
-    int bufferSize; // суммарная длинна ввех строк в выражении
+    int bufferSize; // размер пула переменных
 } InputExpression;
 
 /** итоговый тип выражения после парсинга, каждая строка представлена массивом токенов, поэтому структура хранит
@@ -67,7 +67,7 @@ typedef struct {
 } ParsedExpression;
 
 
-/// основной метод парсинга, принимает объект InputExpression и возвращает объект ParsedExpression
+/// основной метод парсинга, получает ввод с помощью getInput() и возвращает объект ParsedExpression
 ParsedExpression parseExpression();
 
 // булевые методы проверки токена на то, какая информация в нем хранится

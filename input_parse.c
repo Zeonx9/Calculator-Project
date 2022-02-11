@@ -99,7 +99,7 @@ TokenArray tokenize (char *expr, char ** variablesPool, int *varCount) {
         TokenType type; double value; Function actCode; int isImaginary, varId;
 
         // проверка первого символа элемента, на то, что он может встетиться в правильном выражении
-        if (!isDigitOrJ(*pos) && !isAllowedInId(*pos) && *pos != ' ' && *pos != ',' && *pos == '\n')
+        if (!isDigitOrJ(*pos) && !isAllowedInId(*pos) && getOpCode(*pos) == none)
             errorLog(ILLEGAL_CHAR);
 
         if (isDigitOrJ(*pos)) {
