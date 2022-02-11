@@ -13,7 +13,8 @@ int priority(Token * t) {
     switch (t->act) {
         case eqv: return 1;
         case cma: return 2;
-        case add: case sub: return 3;
+        case add: return 3;
+        case sub: if (t->varID == 1) return 6; return 3;
         case mul: case dev: return 4;
         case car: return 5;
         default: return -1;
@@ -130,6 +131,7 @@ int indexOfRootOperation(Expression expr) {
     for (ExprNode *cur = expr.self; cur < expr.self + expr.size; ++cur)
         if (cur->isToken) {
             // пропустить все токены без действия
+
             int curPriority = priority(cur->token);
             if (curPriority < 0) continue;
             // обновить оператор если его приоритет ниже или он стоит левее

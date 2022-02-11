@@ -96,7 +96,7 @@ TokenArray tokenize (char *expr, char ** variablesPool, int *varCount) {
         // t это указатель на текущий токен в его поля будет записана информация о следущем встреченном элементе
         Token *t = tokens + size++;
         // переменные для хранения рвеменных значений полей для токена
-        TokenType type; double value; Function actCode; int isImaginary, varId;
+        TokenType type; double value; Function actCode; int isImaginary, varId = -1;
 
         // проверка первого символа элемента, на то, что он может встетиться в правильном выражении
         if (!isDigitOrJ(*pos) && !isAllowedInId(*pos) && getOpCode(*pos) == none)
@@ -116,6 +116,8 @@ TokenArray tokenize (char *expr, char ** variablesPool, int *varCount) {
             // символ это оператор
             type = operation;
             actCode = tmp; ++pos;
+            // определить унарный минус
+            if (tmp == sub && isOperator(t - 1)) varId = 1;
         } else {
             // иначе это либо переменная либо функция
             type = identifier;
@@ -125,7 +127,6 @@ TokenArray tokenize (char *expr, char ** variablesPool, int *varCount) {
             buf[bufCount] = 0;
             // если слово зарезервированно - это функция
             if ((tmp = getFuncCode(buf)) != none) {
-                varId = -1;
                 if (tmp == PI || tmp == E) {
                     type = constant;
                     value = funcArray[tmp](0, 0);
