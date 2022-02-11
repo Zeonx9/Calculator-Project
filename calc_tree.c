@@ -3,10 +3,12 @@
 #include "calc_tree.h"
 #include "func_wraps.h"
 #include "error_handle.h"
+#include "tests_print.h"
 
 /** приоритеты операций в убывающем порядке
   * функции > ^ > * и , > + и - > , > = **/
-int priority(Token * t) {    if (t->type == identifier && t->act != none) return 6;
+int priority(Token * t) {
+    if (t->type == identifier && t->act != none) return 6;
     if (t->type != operation) return -1;
     switch (t->act) {
         case eqv: return 1;
@@ -16,6 +18,10 @@ int priority(Token * t) {    if (t->type == identifier && t->act != none) return
         case car: return 5;
         default: return -1;
     }
+}
+/// проверяет является ли токен левоассоциативной операцией
+int leftAssosiated(Token * t) {
+    return t->act == eqv;
 }
 
 // рекурсивно вычисляет выражение
@@ -30,6 +36,8 @@ complex double calcExpr(TreeNode * tree, complex double * variables, int * initi
     complex double b = calcExpr(tree->right, variables, initialized),
                    a = calcExpr(tree->left, variables, initialized);
 
+    if (isOperator(tree->data) && tree->data->act != sub && !tree->left)
+        errorLog(NO_ARGS);
     // проверка, что все используемые переменные инициализированы
     if (tree->left && isVariable(tree->left->data) && tree->data->act != eqv && !initialized[tree->left->data->varID] ||
         tree->right && isVariable(tree->right->data) && !initialized[tree->right->data->varID])
@@ -73,8 +81,14 @@ complex double calculate(ParsedExpression pe) {
         Expression expr = handleBrackets(pe.lines[i]);
         TreeNode *tree = buildTree(expr);
         deleteExpression(expr);
+        printTree(tree);      // debug
+        printf("\n");         // debug
+        // вычислить
         result = calcExpr(tree, variables, initialized);
         deleteTree(tree);
+        printResult(result);  // debug
+        printf("\n");         // debug
+
     }
     return result;
 }
@@ -116,9 +130,10 @@ int indexOfRootOperation(Expression expr) {
     for (ExprNode *cur = expr.self; cur < expr.self + expr.size; ++cur)
         if (cur->isToken) {
             // пропустить все токены без действия
-            if (priority(cur->token) < 0) continue;
+            int curPriority = priority(cur->token);
+            if (curPriority < 0) continue;
             // обновить оператор если его приоритет ниже или он стоит левее
-            if (ind < 0 || priority(cur->token) <= curOpPriority) {
+            if (ind < 0 || curPriority < curOpPriority || !leftAssosiated(cur->token) && curPriority == curOpPriority) {
                 ind = (int) (cur - expr.self);
                 curOpPriority = priority(cur->token);
             }
@@ -130,7 +145,7 @@ int indexOfRootOperation(Expression expr) {
 TreeNode * buildTree(Expression expr) {
     // проверить, что выражение не пусто
     if (!expr.size)
-        errorLog(EMPTY_BRACKETS);
+        errorLog(NO_ARGS);
     // найти коренную операцию
     int ind = indexOfRootOperation(expr);
     // если нет операции на данном уровне вложенности и первый узел не токен,
@@ -149,11 +164,12 @@ TreeNode * buildTree(Expression expr) {
     tree->left = ind == 0 ? NULL :  buildTree((Expression) {ind, expr.self});
     // проверка, что у функций логарифма и возведения в степень два аргумента перечисленных через запятую
     if (isFunc(tree->data) && (tree->data->act == log || tree->data->act == pov)) {
-        TreeNode *child = tree->right;
-        if (!(isOperator(child->data) && child->data->act == cma))
+        if (!(isOperator(tree->right->data) && tree->right->data->act == cma))
             errorLog(WRONG_LOG_POW);
-        tree->right = child->right, tree->left = child->left;
-        free(child);
+        if (isOperator(tree->right->left->data) && tree->right->left->data->act == cma)
+            errorLog(TOO_MUCH_ARGS);
+        tree->right = tree->right->right, tree->left = tree->right->left;
+        free(tree->right);
     }
     if (isFunc(tree->data) && !(tree->data->act == log || tree->data->act == pov) &&
             isOperator(tree->right->data) && tree->right->data->act == cma)

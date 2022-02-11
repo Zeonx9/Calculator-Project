@@ -106,7 +106,7 @@ TokenArray tokenize (char *expr, char ** variablesPool, int *varCount) {
             // если слово началось с цифры, точки или j то это слово является численной константой
             type = constant;
             // cчитать все слово в буфер
-            while (*pos && isDigitOrJ(*pos))
+            while (*pos && isDigitOrJ(*pos) && buf[bufCount - 1] != 'j')
                 buf[bufCount++] = *pos++;
             buf[bufCount] = 0;
             // определить соответствующие поля

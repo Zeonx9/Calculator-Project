@@ -5,7 +5,7 @@
 #define START_OF_ERRORS_CODES 100
 
 /// перечисление содержащее численные константы для определения ошибок
-typedef enum { INCORRECT_BRACKETS, ILLEGAL_CHAR, EMPTY_BRACKETS,
+typedef enum { INCORRECT_BRACKETS, ILLEGAL_CHAR, NO_ARGS,
     FOLLOWING_CONSTANTS, WRONG_LOG_POW, CANNOT_ASSIGN, NOT_ASSIGNED, WRONG_VAL, TOO_MUCH_ARGS } Errors;
 /// массив сообщений об ошибках
 extern char * errorMesseges[];
