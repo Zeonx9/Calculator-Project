@@ -158,13 +158,15 @@ TreeNode * buildTree(Expression expr) {
     tree->right = buildTree((Expression) {expr.size - ind - 1, expr.self + ind + 1});
     tree->left = ind == 0 ? NULL :  buildTree((Expression) {ind, expr.self});
     // проверка, что у функций логарифма и возведения в степень два аргумента перечисленных через запятую
+    TreeNode *child = tree->right;
     if (isFunc(tree->data) && (tree->data->act == log || tree->data->act == pov)) {
-        if (!(isOperator(tree->right->data) && tree->right->data->act == cma))
+        if (!(isOperator(child->data) && child->data->act == cma))
             errorLog(WRONG_LOG_POW);
-        if (isOperator(tree->right->left->data) && tree->right->left->data->act == cma)
+        if (isOperator(child->left->data) && child->left->data->act == cma)
             errorLog(TOO_MUCH_ARGS);
-        tree->right = tree->right->right, tree->left = tree->right->left;
-        free(tree->right);
+        tree->right = child->right;
+        tree->left = child->left;
+        free(child);
     }
     if (isFunc(tree->data) && !(tree->data->act == log || tree->data->act == pov) &&
             isOperator(tree->right->data) && tree->right->data->act == cma)

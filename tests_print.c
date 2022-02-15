@@ -20,7 +20,7 @@ void printTree(TreeNode * tn) {
 }
 void printResult(complex double r) {
     if (isZero(cimag(r))) {
-        printf("%g", creal(r));
+        printf("%g", isZero(creal(r)) ? 0 : creal(r));
     } else if (isZero(creal(r))) {
         printf("%gj", cimag(r));
     } else printf("%g%+gj", creal(r), cimag(r));
