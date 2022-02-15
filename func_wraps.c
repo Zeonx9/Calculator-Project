@@ -16,7 +16,7 @@ complex double fpow(complex double a, complex double b) {return cpow(a, b);}
 complex double fsin(complex double a, complex double b) {return csin(b);}
 complex double fcos(complex double a, complex double b) {return ccos(b);}
 complex double ftan(complex double a, complex double b) {if (isZero(ccos(b))) errorLog(WRONG_VAL); return ctan(b);}
-complex double flog(complex double a, complex double b) {if (isZero(b) || isZero(a)) errorLog(WRONG_VAL); return clog(a) / clog(b); }
+complex double flog(complex double a, complex double b) {if (isZero(b) || isZero(a) || isZero(b - 1)) errorLog(WRONG_VAL); return clog(a) / clog(b); }
 complex double flgn(complex double a, complex double b) {if (isZero(b)) errorLog(WRONG_VAL); return log(b);}
 complex double fsrt(complex double a, complex double b) {return csqrt(b);}
 complex double abso(complex double a, complex double b) {return cabs(b);}
