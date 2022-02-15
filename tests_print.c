@@ -1,4 +1,5 @@
 #include "tests_print.h"
+#include "func_wraps.h"
 
 void printToken(Token * t) {
     if (t->type == constant) printf("%.2lf%s", t->value, t->imag ? "i" : "");
@@ -18,9 +19,9 @@ void printTree(TreeNode * tn) {
     }
 }
 void printResult(complex double r) {
-    if (!cimag(r)) {
-        printf("%lf", creal(r));
-    } else if (!creal(r)) {
-        printf("%lfi", cimag(r));
-    } else printf("%lf+%lfi", creal(r), cimag(r));
+    if (isZero(cimag(r))) {
+        printf("%g", creal(r));
+    } else if (isZero(creal(r))) {
+        printf("%gj", cimag(r));
+    } else printf("%g%+gj", creal(r), cimag(r));
 }

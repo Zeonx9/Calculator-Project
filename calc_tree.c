@@ -3,7 +3,6 @@
 #include "calc_tree.h"
 #include "func_wraps.h"
 #include "error_handle.h"
-#include "tests_print.h"
 
 /** приоритеты операций в убывающем порядке
   * функции > ^ > * и , > + и - > , > = **/
@@ -82,14 +81,8 @@ complex double calculate(ParsedExpression pe) {
         Expression expr = handleBrackets(pe.lines[i]);
         TreeNode *tree = buildTree(expr);
         deleteExpression(expr);
-        printTree(tree);      // debug
-        printf("\n");         // debug
-        // вычислить
         result = calcExpr(tree, variables, initialized);
         deleteTree(tree);
-        printResult(result);  // debug
-        printf("\n");         // debug
-
     }
     return result;
 }

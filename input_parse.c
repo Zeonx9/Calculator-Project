@@ -130,6 +130,7 @@ TokenArray tokenize (char *expr, char ** variablesPool, int *varCount) {
                 if (tmp == PI || tmp == E) {
                     type = constant;
                     value = funcArray[tmp](0, 0);
+                    isImaginary = 0;
                 }
             }
             else // иначе переменная

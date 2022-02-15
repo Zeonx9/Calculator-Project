@@ -3,6 +3,8 @@
 
 #include <complex.h>
 
+int isZero(complex double a);
+
 /// массив указателей на функции используется для выполнения указаных действий при вычислении
 extern complex double (*funcArray[]) (complex double, complex double);
 
