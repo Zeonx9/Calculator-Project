@@ -3,7 +3,7 @@
 
 #ifdef T
 #define MAX_EXPR_LEN 300 // максимальная длинна строки
-const char fileName[] = "saved_lines_file.txt"; // имя файла куда сохраняется выражение
+const char fileName[] = "input_file.txt"; // имя файла куда сохраняется выражение
 #include <string.h>
 #include <stdlib.h>
 #include "func_wraps.h"
@@ -157,14 +157,17 @@ TokenArray tokenize (char *expr, char ** variablesPool, int *varCount) {
 InputExpression getInput() {
     InputExpression ie = {};
     char buffer[MAX_EXPR_LEN];
-    ie.savedFile = fopen(fileName, "w+"); // файл открыт для записи и чтения
-    // считывать строки, пока не встретится пустая
-    while (*fgets(buffer, MAX_EXPR_LEN, stdin) != '\n') {
-        ie.lineCount++;
-        fputs(buffer, ie.savedFile); // сохранить строку в файл
+    ie.savedFile = fopen(fileName, "r"); // файл открыт для чтения
+    if(!ie.savedFile) {
+        printf("No such file: %s\n", fileName);
+        exit(10);
     }
+    // посчитать число строк
+    while (fgets(buffer, MAX_EXPR_LEN, ie.savedFile))
+        ++ie.lineCount;
     // установить указатьель файла в начало, для последующего чтения
     fseek(ie.savedFile, 0, SEEK_SET);
+    // вычислить необходимую длину буфера
     ie.bufferSize = MAX_VARS_IN_LINE * ie.lineCount;
     return ie;
 }
