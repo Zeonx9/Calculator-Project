@@ -1,5 +1,4 @@
 #include <malloc.h>
-#include <complex.h>
 #include "calc_tree.h"
 #include "func_wraps.h"
 #include "error_handle.h"
